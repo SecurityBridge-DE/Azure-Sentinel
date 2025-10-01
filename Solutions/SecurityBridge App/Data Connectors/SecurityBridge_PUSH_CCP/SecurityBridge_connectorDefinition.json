@@ -95,7 +95,7 @@
                                 },
                                 {
                                     "title": "2. Maintain the data collection endpoint details and authentication info in SecurityBridge",
-                                    "description": "Share the data collection endpoint URL and authentication info with the SecurityBridge administrator to configure the Securitybridge to send data to the data collection endpoint.\n\nLearn more from our KB Page https://abap-experts.atlassian.net/wiki/spaces/SB/pages/4099309579/REST+Push+Interface",
+                                    "description": "Share the data collection endpoint URL and authentication info with the SecurityBridge administrator to configure the Securitybridge to send data to the data collection endpoint.\n\nLearn more from our KB Page https://abap-experts.atlassian.net/wiki/spaces/SB/pages/4099309579/REST+Push+Interface or here https://abap-experts.atlassian.net/wiki/spaces/SB/pages/4958945288/Connect+MS+Sentinel+via+the+REST+Push+API",
                                     "instructions": [
                                         {
                                             "parameters": {
