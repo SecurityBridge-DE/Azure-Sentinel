@@ -17,8 +17,9 @@ tactics:
 relevantTechniques:
   - T1189
 query: |
-  SecurityBridgeLogs
-  | where Severity contains "Critical"
+  SecurityBridge_CL
+  | extend sev = todouble(severity)
+  | where sev between (9.0 .. 10.0)
 entityMappings:
   - entityType: Account
     fieldMappings:
