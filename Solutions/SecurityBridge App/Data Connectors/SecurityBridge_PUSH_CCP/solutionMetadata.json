@@ -1,7 +1,7 @@
 {
     "SolutionName":"Securitybridge for Microsoft Sentinel",
     "SolutionAuthor": "SecurityBridge",
-    "SolutionVersion":"3.2.0",
+    "SolutionVersion":"3.2.2",
     "PackageId": "azuresentinel.azure-sentinel-solution-SecurityBridgePushV1",
     "TemplateName": "SecurityBridgePushV1",
     "ConnectorDefinitionTemplateVersion": "1.0.0",
