@@ -20,7 +20,7 @@
             "type": 4,
             "isRequired": true,
             "value": {
-              "durationMs": 5184000000
+              "durationMs": 172800000
             },
             "typeSettings": {
               "selectableValues": [
@@ -84,7 +84,6 @@
             "type": 10,
             "isRequired": true,
             "typeSettings": {
-              "additionalResourceOptions": [],
               "showDefault": false
             },
             "jsonData": "[{ \"value\": \"Yes\", \"label\": \"Yes\"},\r\n {\"value\": \"No\", \"label\": \"No\", \"selected\":true }]",
@@ -143,9 +142,9 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "SecurityBridge_CL\r\n| extend severity = tostring(severity)\r\n| summarize Count = count() by severity\r\n| extend severityNumber = case(severity == \"Low\", 3, severity == \"Medium\", 7, severity == \"High\", 9, severity == \"Critical\", 10, 0)\r\n| sort by severityNumber",
+              "query": "SecurityBridge_CL\n| extend sev = toint(severity)\n| extend severityLabel = case(\n    sev >= 9,  \"Critical\",\n    sev >= 7,  \"High\",\n    sev >= 3,  \"Medium\",\n    sev >= 1,  \"Low\",\n    \"Info\"\n)\n| extend severityNumber = case(\n    severityLabel == \"Critical\", 10,\n    severityLabel == \"High\",      9,\n    severityLabel == \"Medium\",    7,\n    severityLabel == \"Low\",       3,\n    0\n)\n| summarize Count = count() by severityLabel, severityNumber\n| order by severityNumber desc\n| project severity = severityLabel, Count, severityNumber",
               "size": 4,
-              "title": "Events by severity",
+              "title": "Events by Severity",
               "timeContextFromParameter": "TimeRange",
               "queryType": 0,
               "resourceType": "microsoft.operationalinsights/workspaces",
@@ -183,7 +182,6 @@
                       },
                       {
                         "operator": "Default",
-                        "thresholdValue": null,
                         "representation": "Sev4",
                         "text": "{0}{1}"
                       }
@@ -199,7 +197,7 @@
               "graphSettings": {
                 "type": 0,
                 "topContent": {
-                  "columnMatch": "severity",
+                  "columnMatch": "Severity",
                   "formatter": 1
                 },
                 "centerContent": {
@@ -243,7 +241,7 @@
                   "multiSelect": true,
                   "quote": "'",
                   "delimiter": ",",
-                  "query": "SecurityBridge_CL\r\n| extend severity = tostring(severity)\r\n| distinct severity",
+                  "query": "SecurityBridge_CL| extend severity = tostring(severity)| distinct severity",
                   "typeSettings": {
                     "additionalResourceOptions": [
                       "value::all"
@@ -256,7 +254,10 @@
                   "timeContextFromParameter": "TimeRange",
                   "defaultValue": "value::all",
                   "queryType": 0,
-                  "resourceType": "microsoft.operationalinsights/workspaces"
+                  "resourceType": "microsoft.operationalinsights/workspaces",
+                  "value": [
+                    "value::all"
+                  ]
                 },
                 {
                   "id": "afb7a9f8-5e29-411e-8d9e-99f4bc855b0b",
@@ -267,7 +268,7 @@
                   "multiSelect": true,
                   "quote": "'",
                   "delimiter": ",",
-                  "query": "SecurityBridge_CL\r\n| where severity in ({severity})\r\n| distinct UPN",
+                  "query": "SecurityBridge_CL| where severity in ({severity})| distinct User",
                   "typeSettings": {
                     "additionalResourceOptions": [
                       "value::all"
@@ -292,7 +293,7 @@
                   "multiSelect": true,
                   "quote": "'",
                   "delimiter": ",",
-                  "query": "SecurityBridge_CL\r\n| where severity in ({severity})\r\n| distinct SAPsid",
+                  "query": "SecurityBridge_CL| where severity in ({severity})| distinct Agent",
                   "typeSettings": {
                     "additionalResourceOptions": [
                       "value::all"
@@ -305,7 +306,10 @@
                   "timeContextFromParameter": "TimeRange",
                   "defaultValue": "value::all",
                   "queryType": 0,
-                  "resourceType": "microsoft.operationalinsights/workspaces"
+                  "resourceType": "microsoft.operationalinsights/workspaces",
+                  "value": [
+                    "value::all"
+                  ]
                 },
                 {
                   "id": "b6d548e0-6685-4bac-9419-25d74a4972d7",
@@ -316,7 +320,7 @@
                   "multiSelect": true,
                   "quote": "'",
                   "delimiter": ",",
-                  "query": "SecurityBridge_CL\r\n| where severity in ({severity})\r\n| distinct shost",
+                  "query": "SecurityBridge_CL| where severity in ({severity})| distinct Terminal",
                   "typeSettings": {
                     "additionalResourceOptions": [
                       "value::all"
@@ -340,7 +344,7 @@
                   "multiSelect": true,
                   "quote": "'",
                   "delimiter": ",",
-                  "query": "SecurityBridge_CL\r\n| where severity in ({severity})\r\n| distinct DeviceEventClassID",
+                  "query": "SecurityBridge_CL| where severity in ({severity})| distinct Listener",
                   "typeSettings": {
                     "additionalResourceOptions": [
                       "value::all"
@@ -364,7 +368,7 @@
                   "multiSelect": true,
                   "quote": "'",
                   "delimiter": ",",
-                  "query": "SecurityBridge_CL\r\n| where severity in ({severity})\r\n| distinct Name",
+                  "query": "SecurityBridge_CL| where severity in ({severity})| distinct action",
                   "typeSettings": {
                     "additionalResourceOptions": [
                       "value::all"
@@ -390,7 +394,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "SecurityBridge_CL\r\n| where severity in ({severity})\r\n| where UPN in ({User}) or \"*\" in ({User})\r\n| where SAPsid in ({SAPSID}) or \"*\" in ({SAPSID})\r\n| where shost in ({Terminal}) or \"*\" in ({Terminal})\r\n| where DeviceEventClassID in ({Listener}) or \"*\" in ({Listener})\r\n| where Name in ({Action}) or \"*\" in ({Action})\r\n| project TimeGenerated, severity, DeviceEventClassID, Name, msg, [\"Link to Event\"]= strcat(({urlprefix}), externalid), shost, UPN, SAPsid, SAPclient\r\n| sort by TimeGenerated",
+              "query": "SecurityBridge_CL\r\n| where severity in ({severity})\r\n| where User in ({User}) or \"*\" in ({User})\r\n| where Agent in ({SAPSID}) or \"*\" in ({SAPSID})\r\n| where Terminal in ({Terminal}) or \"*\" in ({Terminal})\r\n| where Listener in ({Listener}) or \"*\" in ({Listener})\r\n| where action in ({Action}) or \"*\" in ({Action})\r\n| project TimeGenerated, severity, Listener, action, message, [\"Link to Event\"]= strcat(({urlprefix}), guid), Terminal, UPN, Agent, client\r\n| sort by TimeGenerated",
               "size": 0,
               "title": "Event by Selected Filters",
               "timeContextFromParameter": "TimeRange",
@@ -406,20 +410,9 @@
                       "linkLabel": "Link to the Event"
                     }
                   }
-                ],
-                "sortBy": [
-                  {
-                    "itemKey": "shost",
-                    "sortOrder": 2
-                  }
                 ]
               },
-              "sortBy": [
-                {
-                  "itemKey": "shost",
-                  "sortOrder": 2
-                }
-              ]
+              "sortBy": []
             },
             "name": "query - 1"
           }
@@ -430,7 +423,7 @@
         "comparison": "isEqualTo",
         "value": "analyze"
       },
-      "name": "group - 23"
+      "name": "Event Analyse"
     },
     {
       "type": 12,
@@ -466,7 +459,7 @@
                   "multiSelect": true,
                   "quote": "'",
                   "delimiter": ",",
-                  "query": "SecurityBridge_CL\r\n| distinct SAPsid",
+                  "query": "SecurityBridge_CL| distinct Agent",
                   "typeSettings": {
                     "additionalResourceOptions": [
                       "value::all"
@@ -505,7 +498,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "SecurityBridge_CL\r\n| where SAPsid in ({SAPSID}) or \"*\" in ({SAPSID})\r\n| summarize count() by Name",
+              "query": "SecurityBridge_CL\r\n| where Agent in ({SAPSID}) or \"*\" in ({SAPSID})\r\n| summarize count() by action",
               "size": 0,
               "title": "Events by Event Name",
               "timeContextFromParameter": "TimeRange",
@@ -517,7 +510,7 @@
                 "showLegend": true
               }
             },
-            "name": "query - 1"
+            "name": "Events by Event Name"
           },
           {
             "type": 12,
@@ -543,7 +536,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "SecurityBridge_CL\r\n| where SAPsid in ({SAPSID}) or \"*\" in ({SAPSID})\r\n| summarize [\"Number of Events\"] = count() by bin(todatetime(rt), 1d)",
+                    "query": "SecurityBridge_CL\r\n| where Agent in ({SAPSID}) or \"*\" in ({SAPSID})\r\n| summarize ['Number of Events'] = count() by bin(EventdateISO8601, 1d)",
                     "size": 1,
                     "title": "Events Ingestion by Time",
                     "timeContextFromParameter": "TimeRange",
@@ -560,7 +553,7 @@
               ]
             },
             "customWidth": "50",
-            "name": "group - 13"
+            "name": "Events Ingestion by Time"
           },
           {
             "type": 12,
@@ -586,9 +579,9 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "SecurityBridge_CL\r\n| where SAPsid in ({SAPSID}) or \"*\" in ({SAPSID})\r\n| summarize count() by bin(todatetime(rt), 1h), severity",
+                    "query": "SecurityBridge_CL\r\n| where Agent in ({SAPSID}) or \"*\" in ({SAPSID})\r\n| summarize count() by bin(EventdateISO8601, 1d),severity\r\n",
                     "size": 1,
-                    "title": "Events by Time with respect to severity",
+                    "title": "Events by Time with respect to Severity",
                     "timeContextFromParameter": "TimeRange",
                     "queryType": 0,
                     "resourceType": "microsoft.operationalinsights/workspaces",
@@ -622,7 +615,7 @@
               ]
             },
             "customWidth": "50",
-            "name": "group - 13 - Copy"
+            "name": "Events by Time with respect to Severity"
           },
           {
             "type": 12,
@@ -648,7 +641,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "SecurityBridge_CL\r\n| where SAPsid in ({SAPSID}) or \"*\" in ({SAPSID})\r\n| summarize count() by SAPsid",
+                    "query": "SecurityBridge_CL\r\n| where Agent in ({SAPSID}) or \"*\" in ({SAPSID})\r\n| summarize count() by Agent",
                     "size": 1,
                     "title": "Events Ingestion by Time",
                     "timeContextFromParameter": "TimeRange",
@@ -665,15 +658,15 @@
               ]
             },
             "customWidth": "50",
-            "name": "group - 13 - Copy"
+            "name": "Events Ingestion by Time"
           },
           {
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "SecurityBridge_CL\r\n| where SAPsid in ({SAPSID}) or \"*\" in ({SAPSID})\r\n| summarize count() by severity",
+              "query": "SecurityBridge_CL\r\n| where Agent in ({SAPSID}) or \"*\" in ({SAPSID})\r\n| summarize count() by severity",
               "size": 0,
-              "title": "Events by severity",
+              "title": "Events by Severity",
               "timeContextFromParameter": "TimeRange",
               "queryType": 0,
               "resourceType": "microsoft.operationalinsights/workspaces",
@@ -684,13 +677,13 @@
               }
             },
             "customWidth": "30",
-            "name": "query - 1 - Copy - Copy - Copy"
+            "name": "Events by Severity"
           },
           {
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "SecurityBridge_CL\r\n| where SAPsid in ({SAPSID}) or \"*\" in ({SAPSID})\r\n| summarize count() by UPN\r\n| sort by count_\r\n| take 5",
+              "query": "SecurityBridge_CL\r\n| where Agent in ({SAPSID}) or \"*\" in ({SAPSID})\r\n| summarize count() by User\r\n| sort by count_\r\n| take 5",
               "size": 0,
               "title": "Top 5 Users",
               "timeContextFromParameter": "TimeRange",
@@ -703,13 +696,13 @@
               }
             },
             "customWidth": "30",
-            "name": "query - 1 - Copy - Copy - Copy - Copy"
+            "name": "Top 5 Users"
           },
           {
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "SecurityBridge_CL\r\n| where SAPsid in ({SAPSID}) or \"*\" in ({SAPSID})\r\n| summarize count() by dhost\r\n| sort by count_\r\n| take 5",
+              "query": "SecurityBridge_CL\r\n| where Agent in ({SAPSID}) or \"*\" in ({SAPSID})\r\n| summarize count() by Terminal\r\n| sort by count_\r\n| take 5",
               "size": 0,
               "title": "Top 5 Workstations",
               "timeContextFromParameter": "TimeRange",
@@ -722,13 +715,13 @@
               }
             },
             "customWidth": "30",
-            "name": "query - 1 - Copy - Copy - Copy - Copy - Copy"
+            "name": "Top 5 Workstations"
           },
           {
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "SecurityBridge_CL\r\n| where SAPsid in ({SAPSID}) or \"*\" in ({SAPSID})\r\n| summarize count() by UPN\r\n| join (\r\nSecurityBridge_CL\r\n| where SAPsid in ({SAPSID}) or \"*\" in ({SAPSID})\r\n| extend user = UPN\r\n| make-series TrendList = count() on todatetime(rt) in range({TimeRange:start}, {TimeRange:end}, {TimeRange:grain}) by UPN ) on UPN\r\n| project UPN, [\"Total events\"] = count_, TrendLine = TrendList\r\n| top 10 by [\"Total events\"] desc",
+              "query": "SecurityBridge_CL\r\n| where Agent in ({SAPSID}) or \"*\" in ({SAPSID})\r\n| summarize count() by User\r\n| join (\r\nSecurityBridge_CL\r\n| where Agent in ({SAPSID}) or \"*\" in ({SAPSID})\r\n| extend user = User\r\n| make-series TrendList = count() on todatetime(EventdateISO8601) in range({TimeRange:start}, {TimeRange:end}, {TimeRange:grain}) by User ) on User\r\n| project User, [\"Total events\"] = count_, TrendLine = TrendList\r\n| top 10 by [\"Total events\"] desc",
               "size": 0,
               "title": "Event Stats by Users",
               "timeContextFromParameter": "TimeRange",
@@ -752,13 +745,13 @@
               }
             },
             "customWidth": "50",
-            "name": "query - 1 - Copy - Copy - Copy - Copy - Copy - Copy"
+            "name": "Event Stats by Users"
           },
           {
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "SecurityBridge_CL\r\n| where SAPsid in ({SAPSID}) or \"*\" in ({SAPSID})\r\n| summarize count() by dhost\r\n| join (\r\nSecurityBridge_CL\r\n| where SAPsid in ({SAPSID}) or \"*\" in ({SAPSID})\r\n| extend user = dhost\r\n| make-series TrendList = count() on todatetime(rt) in range({TimeRange:start}, {TimeRange:end}, {TimeRange:grain}) by dhost ) on dhost\r\n| project dhost, [\"Total events\"] = count_, TrendLine = TrendList\r\n| top 10 by [\"Total events\"] desc",
+              "query": "SecurityBridge_CL\r\n| where Agent in ({SAPSID}) or \"*\" in ({SAPSID})\r\n| summarize count() by Terminal\r\n| join (\r\nSecurityBridge_CL\r\n| where Agent in ({SAPSID}) or \"*\" in ({SAPSID})\r\n| extend user = Terminal\r\n| make-series TrendList = count() on todatetime(EventdateISO8601) in range({TimeRange:start}, {TimeRange:end}, {TimeRange:grain}) by Terminal ) on Terminal\r\n| project Terminal, [\"Total events\"] = count_, TrendLine = TrendList\r\n| top 10 by [\"Total events\"] desc",
               "size": 0,
               "title": "Event Stats by Host",
               "timeContextFromParameter": "TimeRange",
@@ -782,7 +775,7 @@
               }
             },
             "customWidth": "50",
-            "name": "query - 1 - Copy - Copy - Copy - Copy - Copy - Copy - Copy"
+            "name": "Event Stats by Host"
           }
         ]
       },
@@ -791,7 +784,7 @@
         "comparison": "isEqualTo",
         "value": "monitor"
       },
-      "name": "group - 24"
+      "name": "Events Monitor"
     }
   ],
   "fromTemplateId": "sentinel-SecurityBridge",
